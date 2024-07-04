@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Insert CSS here -->
     <style>
-        /* Insert this in the <style> tag in the HTML head */
 :root {
     --primary-color: #6C63FF;
     --secondary-color: #4CAF50;
@@ -192,6 +191,31 @@ button:hover {
     height: 300px;
 }
 
+.user-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.user-controls input {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.login-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.login-buttons button {
+    width: 48%;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 20px;
@@ -209,8 +233,14 @@ button:hover {
         width: 100%;
         margin-top: 10px;
     }
-}
-    </style>
+    .login-buttons {
+        flex-direction: column;
+    }
+    .login-buttons button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}    </style>
 </head>
 <body>
     <div class="container">
@@ -220,8 +250,10 @@ button:hover {
                 <div class="user-controls">
                     <input type="text" id="login-username" placeholder="Masukkan nama pengguna">
                     <input type="password" id="login-password" placeholder="Masukkan kata laluan">
-                    <button onclick="login()"><i class="fas fa-sign-in-alt"></i> Log Masuk</button>
-                    <button onclick="register()"><i class="fas fa-user-plus"></i> Daftar</button>
+                    <div class="login-buttons">
+                        <button onclick="login()"><i class="fas fa-sign-in-alt"></i> Log Masuk</button>
+                        <button onclick="register()"><i class="fas fa-user-plus"></i> Daftar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -312,8 +344,8 @@ const auth = firebase.auth();
 // Reading materials
 const materials = {
     mudah: [
-        "Kucing", "Sekolah", "Rumah", "Kawan", "Bunga",
-        "Bahan Bacaan 6", "Bahan Bacaan 7", "Bahan Bacaan 8", "Bahan Bacaan 9", "Bahan Bacaan 10",
+        "Kucing Saya", "Sekolah Saya", "Rumah Saya", "Kawan Saya", "Bunga Raya",
+        "Bahan Bacaan 6", "Bahan Bacaan 7", "Bahan Bacaan 8", "Bahan Bacaan 9", "Bahan Bacaan 10"
     ],
     mediocre: [
         "Bahan Bacaan 11", "Bahan Bacaan 12", "Bahan Bacaan 13", "Bahan Bacaan 14", "Bahan Bacaan 15",
@@ -387,15 +419,15 @@ function loadReadingMaterial() {
     readingContent.innerHTML = `<h3>${selectedMaterial}</h3>`;
     let text = "";
 
-    if (selectedMaterial === "Kucing") {
-        text = "Ini kucing. Ini kucing saya. Kucing saya warna putih. Kucing saya minum susu.";
-    } else if (selectedMaterial === "Sekolah") {
-        text = "Ini sekolah. Ini sekolah saya. Sekolah saya besar. Sekolah saya sekolah Tamil.";
-    } else if (selectedMaterial === "Rumah") {
+    if (selectedMaterial === "Kucing Saya") {
+        text = "Ini kucing saya. Kucing saya berwarna putih. Kucing saya bernama Comel. Kucing saya sangat nakal.";
+    } else if (selectedMaterial === "Sekolah Saya") {
+        text = "Ini sekolah saya. Sekolah saya sangat besar. Sekolah saya mempunyai padang. Padang sekolah saya sangat besar.";
+    } else if (selectedMaterial === "Rumah Saya") {
         text = "Ini rumah saya. Rumah saya sangat besar. Rumah saya mempunyai tiga bilik. Rumah saya mempunyai pintu yang besar.";
-    } else if (selectedMaterial === "Kawan") {
+    } else if (selectedMaterial === "Kawan Saya") {
         text = "Ini kawan saya. Kawan saya sangat baik. Kawan saya suka bermain bola. Kawan saya tinggal dekat rumah saya.";
-    } else if (selectedMaterial === "Bunga") {
+    } else if (selectedMaterial === "Bunga Raya") {
         text = "Ini bunga raya. Bunga raya berwarna merah. Bunga raya adalah bunga kebangsaan. Bunga raya sangat cantik.";
     } else {
         text = `Ini adalah teks untuk ${selectedMaterial}. Klik pada kata-kata sukar untuk menambah ke dalam senarai.`;
