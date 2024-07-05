@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Insert CSS here -->
     <style>
 :root {
     --primary-color: #6C63FF;
@@ -79,7 +78,7 @@ h2 {
     display: block;
 }
 
-input[type="text"], input[type="password"], input[type="date"], select {
+input[type="email"], input[type="password"], input[type="date"], select {
     width: 100%;
     padding: 15px;
     margin: 10px 0;
@@ -90,7 +89,7 @@ input[type="text"], input[type="password"], input[type="date"], select {
     transition: all 0.3s ease;
 }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, select:focus {
+input[type="email"]:focus, input[type="password"]:focus, input[type="date"]:focus, select:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.3);
 }
@@ -107,6 +106,7 @@ button {
     font-size: 18px;
     font-weight: 500;
     transition: all 0.3s ease;
+    margin-bottom: 10px; /* Added margin for better spacing */
 }
 
 button:hover {
@@ -207,13 +207,34 @@ button:hover {
 
 .login-buttons {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column; /* Changed for better mobile layout */
     width: 100%;
     margin-top: 10px;
 }
 
 .login-buttons button {
-    width: 48%;
+    width: 100%;
+    margin-bottom: 10px; /* Added margin for better spacing */
+}
+
+.date-container {
+    position: relative;
+    width: 100%;
+}
+
+.date-container input[type="date"] {
+    width: calc(100% - 40px);
+    padding-right: 40px;
+}
+
+.date-container .calendar-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--primary-color);
+    font-size: 20px;
 }
 
 @media (max-width: 600px) {
@@ -240,7 +261,8 @@ button:hover {
         width: 100%;
         margin-top: 10px;
     }
-}    </style>
+}
+    </style>
 </head>
 <body>
     <div class="container">
@@ -248,11 +270,12 @@ button:hover {
             <div class="card">
                 <h1><i class="fas fa-book-reader"></i> Pustaka Melayu</h1>
                 <div class="user-controls">
-                    <input type="text" id="login-username" placeholder="Masukkan nama pengguna">
+                    <input type="email" id="login-email" placeholder="Masukkan alamat emel">
                     <input type="password" id="login-password" placeholder="Masukkan kata laluan">
                     <div class="login-buttons">
                         <button onclick="login()"><i class="fas fa-sign-in-alt"></i> Log Masuk</button>
                         <button onclick="register()"><i class="fas fa-user-plus"></i> Daftar</button>
+                        <button onclick="resetPassword()"><i class="fas fa-key"></i> Reset Kata Laluan</button>
                     </div>
                 </div>
             </div>
@@ -279,7 +302,10 @@ button:hover {
             
             <div class="card">
                 <h2><i class="fas fa-star"></i> Penilaian Guru:</h2>
-                <input type="date" id="evaluation-date" placeholder="Tarikh Penilaian">
+                <div class="date-container">
+                    <input type="date" id="evaluation-date" placeholder="Tarikh Penilaian">
+                    <i class="fas fa-calendar-alt calendar-icon" onclick="document.getElementById('evaluation-date').focus();"></i>
+                </div>
                 <select id="evaluation-level">
                     <option value="1">1 - Mudah</option>
                     <option value="2">2</option>
@@ -324,323 +350,370 @@ button:hover {
             </div>
         </div>
     </div>
-    <!-- Insert JavaScript here -->
     <script>
-// Initialize Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyAyxwfLTjdfc4XqZPje8BnWqtlbvTQGUFw",
-    authDomain: "bacaan-bahasa-melayu.firebaseapp.com",
-    databaseURL: "https://bacaan-bahasa-melayu-default-rtdb.firebaseio.com",
-    projectId: "bacaan-bahasa-melayu",
-    storageBucket: "bacaan-bahasa-melayu.appspot.com",
-    messagingSenderId: "1074115303910",
-    appId: "1:1074115303910:web:df781b567c8c9d4db54e4d",
-    measurementId: "G-XS9D0Z1N2T"
-};
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-const auth = firebase.auth();
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAyxwfLTjdfc4XqZPje8BnWqtlbvTQGUFw",
+        authDomain: "bacaan-bahasa-melayu.firebaseapp.com",
+        databaseURL: "https://bacaan-bahasa-melayu-default-rtdb.firebaseio.com",
+        projectId: "bacaan-bahasa-melayu",
+        storageBucket: "bacaan-bahasa-melayu.appspot.com",
+        messagingSenderId: "1074115303910",
+        appId: "1:1074115303910:web:df781b567c8c9d4db54e4d",
+        measurementId: "G-XS9D0Z1N2T"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
 
-// Reading materials
-const materials = {
-    mudah: [
-        "Kucing Saya", "Sekolah Saya", "Rumah Saya", "Kawan Saya", "Bunga Raya",
-        "Bahan Bacaan 6", "Bahan Bacaan 7", "Bahan Bacaan 8", "Bahan Bacaan 9", "Bahan Bacaan 10"
-    ],
-    mediocre: [
-        "Bahan Bacaan 11", "Bahan Bacaan 12", "Bahan Bacaan 13", "Bahan Bacaan 14", "Bahan Bacaan 15",
-        "Bahan Bacaan 16", "Bahan Bacaan 17", "Bahan Bacaan 18", "Bahan Bacaan 19", "Bahan Bacaan 20"
-    ],
-    good: [
-        "Bahan Bacaan 21", "Bahan Bacaan 22", "Bahan Bacaan 23", "Bahan Bacaan 24", "Bahan Bacaan 25",
-        "Bahan Bacaan 26", "Bahan Bacaan 27", "Bahan Bacaan 28", "Bahan Bacaan 29", "Bahan Bacaan 30"
-    ]
-};
-
-function register() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    auth.createUserWithEmailAndPassword(username + '@example.com', password)
-        .then((userCredential) => {
-            alert('Pendaftaran berjaya!');
-            login();
-        })
-        .catch((error) => {
-            alert('Ralat: ' + error.message);
-        });
-}
-
-function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    auth.signInWithEmailAndPassword(username + '@example.com', password)
-        .then((userCredential) => {
-            alert('Log masuk berjaya!');
-            document.querySelector('.login-container').classList.remove('visible');
-            document.querySelector('.main-container').classList.add('visible');
-            loadMaterials();
-            updateChartMaterial();
-        })
-        .catch((error) => {
-            alert('Ralat: ' + error.message);
-        });
-}
-
-function logout() {
-    auth.signOut().then(() => {
-        alert('Log keluar berjaya!');
-        document.querySelector('.login-container').classList.add('visible');
-        document.querySelector('.main-container').classList.remove('visible');
-    }).catch((error) => {
-        alert('Ralat: ' + error.message);
-    });
-}
-
-function loadMaterials() {
-    const level = document.getElementById('level-selector').value;
-    const materialSelector = document.getElementById('material-selector');
-    const chartMaterialSelector = document.getElementById('chart-material-selector');
-    materialSelector.innerHTML = '';
-    chartMaterialSelector.innerHTML = '';
-    materials[level].forEach(material => {
-        const option = document.createElement('option');
-        option.value = material;
-        option.textContent = material;
-        materialSelector.appendChild(option);
-        chartMaterialSelector.appendChild(option.cloneNode(true));
-    });
-    loadReadingMaterial();
-    updateChartMaterial();
-}
-
-function loadReadingMaterial() {
-    const selectedMaterial = document.getElementById('material-selector').value;
-    const readingContent = document.getElementById('reading-content');
-    readingContent.innerHTML = `<h3>${selectedMaterial}</h3>`;
-    let text = "";
-
-    if (selectedMaterial === "Kucing Saya") {
-        text = "Ini kucing saya. Kucing saya berwarna putih. Kucing saya bernama Comel. Kucing saya sangat nakal.";
-    } else if (selectedMaterial === "Sekolah Saya") {
-        text = "Ini sekolah saya. Sekolah saya sangat besar. Sekolah saya mempunyai padang. Padang sekolah saya sangat besar.";
-    } else if (selectedMaterial === "Rumah Saya") {
-        text = "Ini rumah saya. Rumah saya sangat besar. Rumah saya mempunyai tiga bilik. Rumah saya mempunyai pintu yang besar.";
-    } else if (selectedMaterial === "Kawan Saya") {
-        text = "Ini kawan saya. Kawan saya sangat baik. Kawan saya suka bermain bola. Kawan saya tinggal dekat rumah saya.";
-    } else if (selectedMaterial === "Bunga Raya") {
-        text = "Ini bunga raya. Bunga raya berwarna merah. Bunga raya adalah bunga kebangsaan. Bunga raya sangat cantik.";
-    } else {
-        text = `Ini adalah teks untuk ${selectedMaterial}. Klik pada kata-kata sukar untuk menambah ke dalam senarai.`;
-    }
-
-    const words = text.split(" ");
-    words.forEach(word => {
-        const span = document.createElement('span');
-        span.textContent = word + " ";
-        span.onclick = function() {
-            addDifficultWord(word);
-        };
-        readingContent.appendChild(span);
-    });
-    loadProgress(selectedMaterial);
-}
-
-function addDifficultWord(word) {
-    const difficultWordsList = document.getElementById('difficult-words-list');
-    const wordElement = document.createElement('div');
-    wordElement.className = 'difficult-word';
-    wordElement.textContent = word;
-    wordElement.onclick = function() {
-        removeDifficultWord(wordElement);
+    // Reading materials
+    const materials = {
+        mudah: [
+            "Kucing Saya", "Sekolah Saya", "Rumah Saya", "Kawan Saya", "Bunga Raya",
+            "Bahan Bacaan 6", "Bahan Bacaan 7", "Bahan Bacaan 8", "Bahan Bacaan 9", "Bahan Bacaan 10"
+        ],
+        mediocre: [
+            "Bahan Bacaan 11", "Bahan Bacaan 12", "Bahan Bacaan 13", "Bahan Bacaan 14", "Bahan Bacaan 15",
+            "Bahan Bacaan 16", "Bahan Bacaan 17", "Bahan Bacaan 18", "Bahan Bacaan 19", "Bahan Bacaan 20"
+        ],
+        good: [
+            "Bahan Bacaan 21", "Bahan Bacaan 22", "Bahan Bacaan 23", "Bahan Bacaan 24", "Bahan Bacaan 25",
+            "Bahan Bacaan 26", "Bahan Bacaan 27", "Bahan Bacaan 28", "Bahan Bacaan 29", "Bahan Bacaan 30"
+        ]
     };
 
-    const speakerIcon = document.createElement('span');
-    speakerIcon.className = 'speaker-icon';
-    speakerIcon.innerHTML = '🔊';
-    speakerIcon.onclick = function(event) {
-        event.stopPropagation();
-        speakWord(word);
-    };
-
-    wordElement.appendChild(speakerIcon);
-    difficultWordsList.appendChild(wordElement);
-
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
-        const selectedMaterial = document.getElementById('material-selector').value;
-        database.ref('users/' + username + '/difficultWords/' + selectedMaterial).push(word);
-    }
-}
-
-function removeDifficultWord(element) {
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
-        const selectedMaterial = document.getElementById('material-selector').value;
-        const word = element.textContent.replace('🔊', '').trim();
-        database.ref('users/' + username + '/difficultWords/' + selectedMaterial).orderByValue().equalTo(word).once('value', snapshot => {
-            snapshot.forEach(child => {
-                child.ref.remove();
+    function register() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                showCustomAlert('Pendaftaran berjaya!');
+                login();
+            })
+            .catch((error) => {
+                showCustomAlert('Ralat: ' + error.message);
             });
+    }
+
+    function login() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                showCustomAlert('Log masuk berjaya!');
+                document.querySelector('.login-container').classList.remove('visible');
+                document.querySelector('.main-container').classList.add('visible');
+                loadMaterials();
+                const user = auth.currentUser;
+                const username = user.email.split('@')[0];
+                loadDifficultWords(username, document.getElementById('material-selector').value);
+                loadProgress();
+            })
+            .catch((error) => {
+                showCustomAlert('Ralat: ' + error.message);
+            });
+    }
+
+    function resetPassword() {
+        const email = document.getElementById('login-email').value;
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                showCustomAlert('Emel reset kata laluan telah dihantar!');
+            })
+            .catch((error) => {
+                showCustomAlert('Ralat: ' + error.message);
+            });
+    }
+
+    function logout() {
+        auth.signOut().then(() => {
+            showCustomAlert('Log keluar berjaya!');
+            document.querySelector('.login-container').classList.add('visible');
+            document.querySelector('.main-container').classList.remove('visible');
+        }).catch((error) => {
+            showCustomAlert('Ralat: ' + error.message);
         });
     }
-    element.remove();
-}
 
-function speakWord(word) {
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = 'ms-MY';
-    speechSynthesis.speak(utterance);
-}
-
-function saveProgress() {
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
+    function loadMaterials() {
         const level = document.getElementById('level-selector').value;
-        const material = document.getElementById('material-selector').value;
-        const date = document.getElementById('evaluation-date').value;
-        const evaluation = document.getElementById('evaluation-level').value;
-
-        const progressData = {
-            level: level,
-            date: date,
-            evaluation: parseInt(evaluation)
-        };
-
-        // Save current progress
-        database.ref(`users/${username}/progress/${material}`).set(progressData, (error) => {
-            if (error) {
-                alert('Gagal menyimpan kemajuan: ' + error.message);
-            } else {
-                alert('Kemajuan disimpan.');
-                updateProgress(evaluation);
-            }
+        const materialSelector = document.getElementById('material-selector');
+        const chartMaterialSelector = document.getElementById('chart-material-selector');
+        materialSelector.innerHTML = '';
+        chartMaterialSelector.innerHTML = '';
+        materials[level].forEach(material => {
+            const option = document.createElement('option');
+            option.value = material;
+            option.textContent = material;
+            materialSelector.appendChild(option);
+            chartMaterialSelector.appendChild(option.cloneNode(true));
         });
-
-        // Save historical data
-        database.ref(`users/${username}/history/${material}`).push(progressData, (error) => {
-            if (error) {
-                console.error('Gagal menyimpan sejarah:', error);
-            } else {
-                console.log('Sejarah disimpan.');
-                updateChartMaterial();
-            }
-        });
-    } else {
-        alert('Sila log masuk dahulu.');
-    }
-}
-
-function loadProgress(material) {
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
-        database.ref('users/' + username + '/progress/' + material).once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                document.getElementById('level-selector').value = data.level;
-                document.getElementById('material-selector').value = data.material;
-                document.getElementById('evaluation-date').value = data.date;
-                document.getElementById('evaluation-level').value = data.evaluation;
-                updateProgress(data.evaluation);
-                loadDifficultWords(username, material);
-            } else {
-                resetProgress();
-            }
-        });
-    }
-}
-
-function resetProgress() {
-    document.getElementById('progress').style.width = '0%';
-    document.getElementById('progress').textContent = '0%';
-    document.getElementById('difficult-words-list').innerHTML = '';
-}
-
-function loadDifficultWords(username, material) {
-    const difficultWordsList = document.getElementById('difficult-words-list');
-    difficultWordsList.innerHTML = '';
-
-    database.ref('users/' + username + '/difficultWords/' + material).once('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            const word = childSnapshot.val();
-            addDifficultWord(word);
-        });
-    });
-}
-
-function updateProgress(evaluation) {
-    const progress = document.getElementById('progress');
-    const percentage = (evaluation / 10) * 100;
-    progress.style.width = percentage + '%';
-    progress.textContent = percentage + '%';
-}
-
-function updateChartMaterial() {
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
-        const material = document.getElementById('chart-material-selector').value;
-        updatePerformanceChart(username, material);
-    }
-}
-
-function updatePerformanceChart(username, material) {
-    database.ref(`users/${username}/history/${material}`).orderByChild('date').limitToLast(10).once('value', (snapshot) => {
-        const data = [];
-        snapshot.forEach((childSnapshot) => {
-            const progressData = childSnapshot.val();
-            data.push({
-                date: progressData.date,
-                evaluation: progressData.evaluation
-            });
-        });
-
-        renderChart(data, material);
-    });
-}
-
-function renderChart(data, material) {
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    
-    // Destroy existing chart if it exists
-    if (window.performanceChart instanceof Chart) {
-        window.performanceChart.destroy();
-    }
-
-    window.performanceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.map(item => item.date),
-            datasets: [{
-                label: `Penilaian Guru - ${material}`,
-                data: data.map(item => item.evaluation),
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 10
-                }
-            }
-        }
-    });
-}
-
-// Initialize the material options and chart on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadMaterials();
-    const user = auth.currentUser;
-    if (user) {
-        const username = user.email.split('@')[0];
+        loadReadingMaterial();
         updateChartMaterial();
     }
-});    </script>
+
+    function loadReadingMaterial() {
+        const selectedMaterial = document.getElementById('material-selector').value;
+        const readingContent = document.getElementById('reading-content');
+        readingContent.innerHTML = `<h3>${selectedMaterial}</h3>`;
+        let text = "";
+
+        if (selectedMaterial === "Kucing Saya") {
+            text = "Ini kucing saya. Kucing saya berwarna putih. Kucing saya bernama Comel. Kucing saya sangat nakal.";
+        } else if (selectedMaterial === "Sekolah Saya") {
+            text = "Ini sekolah saya. Sekolah saya sangat besar. Sekolah saya mempunyai padang. Padang sekolah saya sangat besar.";
+        } else if (selectedMaterial === "Rumah Saya") {
+            text = "Ini rumah saya. Rumah saya sangat besar. Rumah saya mempunyai tiga bilik. Rumah saya mempunyai pintu yang besar.";
+        } else if (selectedMaterial === "Kawan Saya") {
+            text = "Ini kawan saya. Kawan saya sangat baik. Kawan saya suka bermain bola. Kawan saya tinggal dekat rumah saya.";
+        } else if (selectedMaterial === "Bunga Raya") {
+            text = "Ini bunga raya. Bunga raya berwarna merah. Bunga raya adalah bunga kebangsaan. Bunga raya sangat cantik.";
+        } else {
+            text = `Ini adalah teks untuk ${selectedMaterial}. Klik pada kata-kata sukar untuk menambah ke dalam senarai.`;
+        }
+
+        const words = text.split(" ");
+        words.forEach(word => {
+            const span = document.createElement('span');
+            span.textContent = word + " ";
+            span.onclick = function() {
+                addDifficultWord(word);
+            };
+            readingContent.appendChild(span);
+        });
+
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            loadDifficultWords(username, selectedMaterial);
+            loadProgress(selectedMaterial);
+        }
+    }
+
+    // Function to add a difficult word
+    function addDifficultWord(word) {
+        const difficultWordsList = document.getElementById('difficult-words-list');
+        const existingWords = [...difficultWordsList.children].map(child => child.textContent.replace('🔊', '').trim());
+        if (existingWords.includes(word)) {
+            return;
+        }
+        const wordElement = document.createElement('div');
+        wordElement.className = 'difficult-word';
+        wordElement.textContent = word;
+        wordElement.onclick = function() {
+            removeDifficultWord(wordElement);
+        };
+
+        const speakerIcon = document.createElement('span');
+        speakerIcon.className = 'speaker-icon';
+        speakerIcon.innerHTML = '🔊';
+        speakerIcon.onclick = function(event) {
+            event.stopPropagation();
+            speakWord(word);
+        };
+
+        wordElement.appendChild(speakerIcon);
+        difficultWordsList.appendChild(wordElement);
+
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            const selectedMaterial = document.getElementById('material-selector').value;
+            database.ref('users/' + username + '/difficultWords/' + selectedMaterial).push(word);
+        }
+    }
+
+    // Function to remove a difficult word
+    function removeDifficultWord(element) {
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            const selectedMaterial = document.getElementById('material-selector').value;
+            const word = element.textContent.replace('🔊', '').trim();
+            database.ref('users/' + username + '/difficultWords/' + selectedMaterial).orderByValue().equalTo(word).once('value', snapshot => {
+                snapshot.forEach(child => {
+                    child.ref.remove();
+                });
+            });
+        }
+        element.remove();
+    }
+
+    // Function to load difficult words from the database
+    function loadDifficultWords(username, material) {
+        const difficultWordsList = document.getElementById('difficult-words-list');
+        difficultWordsList.innerHTML = '';
+
+        database.ref('users/' + username + '/difficultWords/' + material).once('value', (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const word = childSnapshot.val();
+                addDifficultWord(word);
+            });
+        });
+    }
+
+    function speakWord(word) {
+        const utterance = new SpeechSynthesisUtterance(word);
+        utterance.lang = 'ms-MY';
+        speechSynthesis.speak(utterance);
+    }
+
+    function saveProgress() {
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            const level = document.getElementById('level-selector').value;
+            const material = document.getElementById('material-selector').value;
+            const date = document.getElementById('evaluation-date').value;
+            const evaluation = document.getElementById('evaluation-level').value;
+
+            const progressData = {
+                level: level,
+                date: date,
+                evaluation: parseInt(evaluation)
+            };
+
+            // Save current progress
+            database.ref(`users/${username}/progress/${material}`).set(progressData, (error) => {
+                if (error) {
+                    showCustomAlert('Gagal menyimpan kemajuan: ' + error.message);
+                } else {
+                    showCustomAlert('Kemajuan disimpan.');
+                    updateProgress(evaluation);
+                }
+            });
+
+            // Save historical data
+            database.ref(`users/${username}/history/${material}`).push(progressData, (error) => {
+                if (error) {
+                    console.error('Gagal menyimpan sejarah:', error);
+                } else {
+                    console.log('Sejarah disimpan.');
+                    updateChartMaterial();
+                }
+            });
+        } else {
+            showCustomAlert('Sila log masuk dahulu.');
+        }
+    }
+
+    function loadProgress(material) {
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            database.ref('users/' + username + '/progress/' + material).once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('level-selector').value = data.level;
+                    document.getElementById('material-selector').value = material;
+                    document.getElementById('evaluation-date').value = data.date;
+                    document.getElementById('evaluation-level').value = data.evaluation;
+                    updateProgress(data.evaluation);
+                } else {
+                    resetProgress();
+                }
+            });
+        }
+    }
+
+    function resetProgress() {
+        document.getElementById('progress').style.width = '0%';
+        document.getElementById('progress').textContent = '0%';
+    }
+
+    function updateProgress(evaluation) {
+        const progress = document.getElementById('progress');
+        const percentage = (evaluation / 10) * 100;
+        progress.style.width = percentage + '%';
+        progress.textContent = percentage + '%';
+    }
+
+    function updateChartMaterial() {
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            const material = document.getElementById('chart-material-selector').value;
+            updatePerformanceChart(username, material);
+        }
+    }
+
+    function updatePerformanceChart(username, material) {
+        database.ref(`users/${username}/history/${material}`).orderByChild('date').limitToLast(10).once('value', (snapshot) => {
+            const data = [];
+            snapshot.forEach((childSnapshot) => {
+                const progressData = childSnapshot.val();
+                data.push({
+                    date: progressData.date,
+                    evaluation: progressData.evaluation
+                });
+            });
+
+            renderChart(data, material);
+        });
+    }
+
+    function renderChart(data, material) {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (window.performanceChart instanceof Chart) {
+            window.performanceChart.destroy();
+        }
+
+        window.performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(item => item.date),
+                datasets: [{
+                    label: `Penilaian Guru - ${material}`,
+                    data: data.map(item => item.evaluation),
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                }
+            }
+        });
+    }
+
+    // Custom alert function
+    function showCustomAlert(message) {
+        const alertBox = document.createElement('div');
+        alertBox.style.position = 'fixed';
+        alertBox.style.bottom = '20px';
+        alertBox.style.left = '50%';
+        alertBox.style.transform = 'translateX(-50%)';
+        alertBox.style.backgroundColor = 'var(--primary-color)';
+        alertBox.style.color = 'white';
+        alertBox.style.padding = '10px 20px';
+        alertBox.style.borderRadius = '5px';
+        alertBox.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+        alertBox.style.zIndex = '1000';
+        alertBox.textContent = message;
+
+        document.body.appendChild(alertBox);
+
+        setTimeout(() => {
+            alertBox.remove();
+        }, 3000);
+    }
+
+    // Initialize the material options and chart on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMaterials();
+        const user = auth.currentUser;
+        if (user) {
+            const username = user.email.split('@')[0];
+            updateChartMaterial();
+        }
+    });
+    </script>
 </body>
 </html>
