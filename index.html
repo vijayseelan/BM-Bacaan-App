@@ -262,6 +262,49 @@ button:hover {
         margin-top: 10px;
     }
 }
+
+/* Dark Theme */
+.main-container.dark-theme {
+    --primary-color: #BB86FC;
+    --secondary-color: #03DAC6;
+    --background-color: #121212;
+    --text-color: #FFFFFF;
+    --card-bg: #1F1F1F;
+    --input-bg: #333333;
+}
+
+.main-container.dark-theme .card {
+    color: var(--text-color); /* Ensure card text is white in dark theme */
+}
+
+.main-container.dark-theme h1, 
+.main-container.dark-theme h2, 
+.main-container.dark-theme h3 {
+    color: var(--primary-color); /* Ensure primary headings retain primary color */
+}
+
+.main-container.dark-theme #reading-content span {
+    color: var(--text-color); /* Ensure reading content text is white in dark theme */
+}
+
+.main-container.dark-theme #reading-content span:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color); /* Ensure hover text is white in dark theme */
+}
+
+.main-container.dark-theme .difficult-word {
+    color: var(--text-color); /* Ensure difficult words text is white in dark theme */
+}
+
+.main-container.dark-theme .difficult-word:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color); /* Ensure hover text is white in dark theme */
+}
+
+.main-container.dark-theme .calendar-icon {
+    color: var(--primary-color); /* Ensure calendar icon remains primary color */
+}
+
     </style>
 </head>
 <body>
@@ -344,6 +387,14 @@ button:hover {
                 <canvas id="performanceChart"></canvas>
             </div>
 
+            <div class="card">
+                <h2><i class="fas fa-adjust"></i> Pilih Tema:</h2>
+                <label class="theme-toggle">
+                    <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+                    <span>Dark Theme</span>
+                </label>
+            </div>
+
             <div class="button-group">
                 <button class="small-button" onclick="saveProgress()"><i class="fas fa-save"></i> Simpan Kemajuan</button>
                 <button class="small-button" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Log Keluar</button>
@@ -353,7 +404,7 @@ button:hover {
     <script>
     // Initialize Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyAyxwfLTjdfc4XqZPje8BnWqtlbvTQGUFw",
+         apiKey: "AIzaSyAyxwfLTjdfc4XqZPje8BnWqtlbvTQGUFw",
         authDomain: "bacaan-bahasa-melayu.firebaseapp.com",
         databaseURL: "https://bacaan-bahasa-melayu-default-rtdb.firebaseio.com",
         projectId: "bacaan-bahasa-melayu",
@@ -408,6 +459,7 @@ button:hover {
                 const username = user.email.split('@')[0];
                 loadDifficultWords(username, document.getElementById('material-selector').value);
                 loadProgress();
+                applyTheme();
             })
             .catch((error) => {
                 showCustomAlert('Ralat: ' + error.message);
@@ -705,6 +757,27 @@ button:hover {
         }, 3000);
     }
 
+    // Toggle theme function
+    function toggleTheme() {
+        document.querySelector('.main-container').classList.toggle('dark-theme');
+        saveThemePreference();
+    }
+
+    // Save theme preference
+    function saveThemePreference() {
+        const isDarkTheme = document.querySelector('.main-container').classList.contains('dark-theme');
+        localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+    }
+
+    // Apply theme preference
+    function applyTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme && savedTheme === 'dark') {
+            document.querySelector('.main-container').classList.add('dark-theme');
+            document.getElementById('theme-toggle').checked = true;
+        }
+    }
+
     // Initialize the material options and chart on page load
     document.addEventListener('DOMContentLoaded', () => {
         loadMaterials();
@@ -713,6 +786,9 @@ button:hover {
             const username = user.email.split('@')[0];
             updateChartMaterial();
         }
+
+        // Apply saved theme preference on page load
+        applyTheme();
     });
     </script>
 </body>
